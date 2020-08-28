@@ -1,4 +1,6 @@
-import sys
+#!/usr/bin/env python
+
+'''Utilities and script for searching.'''
 import os
 from IPython.display import HTML, display
 import nbformat
@@ -10,9 +12,9 @@ import pandas as pd
 
 def search_util(root='.'):
     """Recursively find all ipynb files in a directory.
-    root - This is the directory you would like to find the files in, defaults to cwd""" 
+    root - This is the directory you would like to find the files in, defaults to cwd"""
     nb_files = []
-    if isinstance(root, list): 
+    if isinstance(root, list):
         for file in root:
             if file.endswith('.ipynb') and 'checkpoint.ipynb' not in file:
                 nb_files += [file]
@@ -25,7 +27,7 @@ def search_util(root='.'):
 
 def show_files(nb_files):
     [display(HTML(f'<a href="{f}">{f}</a>')) for f in nb_files]
-    
+
 def show_files_tags(nb_files,nb_tags,tag): # [due date (datetime)] optional description
     count = 0
     for i,f in enumerate(nb_files):
@@ -36,7 +38,7 @@ def show_files_tags(nb_files,nb_tags,tag): # [due date (datetime)] optional desc
                 description = ''.join(ss.split('%TODO')).strip()
                 due_date = pd.to_datetime([m.groups(1)[0]])
                 df = pd.DataFrame({'Date':due_date})
-                df['diff'] = df - pd.Timestamp.now().normalize() 
+                df['diff'] = df - pd.Timestamp.now().normalize()
                 due_days = df['diff'][0].days
                 if due_days >= 0:
                     print(description + color.BOLD + color.GREEN + ' (Due in: ' + str(due_days) + ' days)' + color.END)
@@ -47,12 +49,12 @@ def show_files_tags(nb_files,nb_tags,tag): # [due date (datetime)] optional desc
             else:
                 print(nb_tags[i])
                 display(HTML(f'<a href="{f}">{f}</a>'))
-        
-        
+
+
 def search_notebook_util(pattern,cell_type,root='.'):
-    """ This function searches all the markdown or code cells  
+    """ This function searches all the markdown or code cells
     in the notebooks in the directory and returns the notebooks
-    that include the patter input in one or more of the markdown 
+    that include the patter input in one or more of the markdown
     or code cells"""
 
     files = search_util(root)
@@ -86,8 +88,8 @@ def search_heading_util(pattern,root='.'):
     return set(file_list)
 
 def heading_list(file):
-    """ This function searches all the headings in the notebooks 
-    in the directory and returns the notebooks that include the patter 
+    """ This function searches all the headings in the notebooks
+    in the directory and returns the notebooks that include the patter
     input in one or more of the markdown cells"""
 
     heading_list = []
@@ -166,12 +168,12 @@ def Get_props(file):
                 no_prop = False
     if no_prop:
         result = None
-    
+
     return result
 
 def search_todo_util(root='.'):
     """ This function searches the properties cells of the HER notebooks for TODO tags"""
-        
+
     files = search_util(root)
     file_list = []
     tag_list = []
@@ -188,7 +190,7 @@ def search_todo_util(root='.'):
                         break
     return file_list,tag_list
 
-class NB: 
+class NB:
     def __init__(self,filename):
         self.filename = filename
         self.property = Get_props(filename)
@@ -202,14 +204,14 @@ def fsearch_util(f,root='.'):
             if f(nb):
                 file_list.append(file)
     return file_list
-    
-# The Main Functions 
+
+# The Main Functions
 
 def search_files(root='.'):
     nb_files = search_util(root)
     show_files(nb_files)
     return nb_files
-    
+
 
 def search_notebook(string_pattern,cell_type,root='.'):
         """ Cell_type can be 'code' or 'markdown' """
@@ -218,8 +220,8 @@ def search_notebook(string_pattern,cell_type,root='.'):
         return nb_files
 
 def search_heading(pattern,root='.'):
-    """ This function searches all the headings in the notebooks 
-    in the directory and returns the notebooks that include the patter 
+    """ This function searches all the headings in the notebooks
+    in the directory and returns the notebooks that include the patter
     input in one or more of the markdown cells"""
     nb_files = search_heading_util(pattern,root)
     show_files(nb_files)
@@ -231,8 +233,8 @@ def headings_pprint(file):
     pretty_print_headings(List)
 
 def search_data(props,root='.'):
-    """ This function searches all the headings in the notebooks 
-    in the directory and returns the notebooks that include the patter 
+    """ This function searches all the headings in the notebooks
+    in the directory and returns the notebooks that include the patter
     input in one or more of the markdown cells"""
     if isinstance(props,list):
         None
@@ -246,21 +248,21 @@ def search_data(props,root='.'):
     nb_files = search_data_util(props,root)
     show_files(nb_files)
     return nb_files
-        
+
 def search_todo(tag='TODO',root='.'):
-    """ This function searches all the code cells in the notebooks 
+    """ This function searches all the code cells in the notebooks
     in the directory and returns the notebooks descriptions and due dates of the notebooks that include the todo tag in one or more of the code cells"""
     nb_files,nb_tags = search_todo_util(root)
     count = show_files_tags(nb_files,nb_tags,tag)
     return nb_files
-        
+
 def fsearch(f,root = '.'):
     nb_files = fsearch_util(f,root)
     show_files(nb_files)
     return nb_files
 
 if __name__ == '__main__':
-    
+
     # Collecting the Command Line Inputs
 
     parser = argparse.ArgumentParser(description='Search Jupyter Notebooks')
@@ -274,24 +276,24 @@ if __name__ == '__main__':
     parser.add_argument('--todo',nargs='+')
     args = parser.parse_args()
 
-    if args.all: # If you selected "all" you want a list of all of the files in the directory 
+    if args.all: # If you selected "all" you want a list of all of the files in the directory
         root = args.all # If a root is not given the root is assumed to be the current dir.
-        
+
     if args.markdown:
         root = args.markdown[0]
         string_pattern = args.markdown[1:]
-    
+
     if args.code:
         root = args.code[0]
         string_pattern = args.code[1:]
-    
+
     if args.heading:
         root = args.heading[0]
         string_pattern = args.heading[1:]
-    
+
     if args.heading_pp:
         file_name = args.heading_pp[0]
-    
+
     if args.property:
         root = args.property[0]
         x = ''.join(args.property[1:])
@@ -299,16 +301,16 @@ if __name__ == '__main__':
             List_of_desired_props = x.split('and')
         else:
             List_of_desired_props = [args.property[1]]
-            
+
     if args.todo:
         if len(args.todo) == 1:
             root = args.todo[0]
             tag = 'TODO'
-      
+
     # --------------------------------------------------------------------------------
-    if args.all: # If you selected "all" you want a list of all of the files in the directory 
+    if args.all: # If you selected "all" you want a list of all of the files in the directory
         search_files(root)
-    elif args.code: 
+    elif args.code:
         search_notebook(string_pattern[0],'code',root)
     elif args.markdown:
         search_notebook(string_pattern[0],'markdown',root)
